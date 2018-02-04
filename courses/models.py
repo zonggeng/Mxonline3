@@ -32,7 +32,6 @@ class Course(models.Model):
         verbose_name = u"课程"
         verbose_name_plural = verbose_name
 
-
 # 章节
 class Lesson(models.Model):
     # 因为一个课程对应很多章节。所以在章节表中将课程设置为外键。
@@ -76,3 +75,4 @@ class CourseResource(models.Model):
     class Meta:
         verbose_name = u"课程资源"
         verbose_name_plural = verbose_name
+
