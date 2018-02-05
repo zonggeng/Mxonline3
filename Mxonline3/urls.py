@@ -18,7 +18,7 @@ from django.urls import path, include, re_path
 # from django.contrib import admin
 import xadmin
 from django.views.generic import TemplateView
-from users.views import user_login
+from users.views import LoginView
 
 urlpatterns = [
     # url(r'^admin/', admin.site.urls),
@@ -27,5 +27,5 @@ urlpatterns = [
     # TemplateView.as_view会将template转换为view
     path('', TemplateView.as_view(template_name='index.html'), name='index'),
     # path('login/', TemplateView.as_view(template_name='login.html'), name='login'),
-    path('login/', user_login, name="user_login")
+    path('login/', LoginView.as_view(), name="user_login")
 ]
