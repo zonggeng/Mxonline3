@@ -1,12 +1,15 @@
 from django.contrib.auth import authenticate, login
+from django.contrib.auth.hashers import make_password
 from django.shortcuts import render
 from django.contrib.auth.backends import ModelBackend
 
-from users.forms import LoginForm
-from .models import UserProfile
+from operation.models import UserMessage
+from users.forms import LoginForm, RegisterForm, ActiveForm
+from .models import UserProfile, EmailVerifyRecord
 # 并集运算
 from django.db.models import Q
 from django.views.generic.base import View
+from utils.email_end import send_register_eamil
 
 
 # Create your views here.
@@ -93,3 +96,76 @@ class LoginView(View):
         # 没有成功说明里面的值是None，并再次跳转回主页面
         else:
             return render(request, "login.html", {"login_form": login_form})
+
+
+# 注册功能的view
+class RegisterView(View):
+    # get方法直接返回页面
+    def get(self, request):
+        # 添加验证码
+        register_form = RegisterForm()
+        return render(request, "register.html", {'register_form': register_form})
+
+    def post(self, request):
+        # 实例化form
+        register_form = RegisterForm(request.POST)
+        if register_form.is_valid():
+            # 这里注册时前端的name为email
+            user_name = request.POST.get("email", "")
+            # 用户查重
+            if UserProfile.objects.filter(email=user_name):
+                return render(
+                    request, "register.html", {
+                        "register_form": register_form, "msg": "用户已存在"})
+            pass_word = request.POST.get("password", "")
+
+            # 实例化一个user_profile对象，将前台值存入
+            user_profile = UserProfile()
+            user_profile.username = user_name
+            user_profile.email = user_name
+
+            # 默认激活状态为false
+            user_profile.is_active = False
+
+            # 加密password进行保存
+            user_profile.password = make_password(pass_word)
+            user_profile.save()
+
+            # 写入欢迎注册消息
+            user_message = UserMessage()
+            user_message.user = user_profile.id
+            user_message.message = "欢迎注册mtianyan慕课小站!! --系统自动消息"
+            user_message.save()
+            # 发送注册激活邮件
+            send_register_eamil(user_name, "register")
+
+            # 跳转到登录页面
+            return render(request, "login.html", )
+        # 注册邮箱form验证失败
+        else:
+            return render(
+                request, "register.html", {
+                    "register_form": register_form})
+
+
+# 激活用户的view
+class ActiveUserView(View):
+    def get(self, request, active_code):
+        # 查询邮箱验证记录是否存在
+        all_record = EmailVerifyRecord.objects.filter(code=active_code)
+        # 激活form负责给激活跳转进来的人加验证码
+        active_form = ActiveForm(request.GET)
+        # 如果不为空也就是有用户
+        if all_record:
+            for record in all_record:
+                # 获取到对应的邮箱
+                email = record.email
+                # 查找到邮箱对应的user
+                user = UserProfile.objects.get(email=email)
+                user.is_active = True
+                user.save()
+                # 激活成功跳转到登录页面
+                return render(request, "login.html", )
+        # 自己瞎输的验证码
+        else:
+            return render(request, "register.html", {"msg": "您的激活链接无效", "active_form": active_form})
