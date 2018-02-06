@@ -44,6 +44,8 @@ INSTALLED_APPS = [
     'xadmin',
     'crispy_forms',
     'captcha',
+    # 分页
+    'pure_pagination',
 ]
 
 # 此处重载是为了使我们的UserProfile生效
@@ -73,6 +75,9 @@ TEMPLATES = [
                 'django.template.context_processors.request',
                 'django.contrib.auth.context_processors.auth',
                 'django.contrib.messages.context_processors.messages',
+                "django.template.context_processors.i18n",
+                'django.template.context_processors.media',
+                'django.template.context_processors.request',
             ],
         },
     },
@@ -145,3 +150,6 @@ EMAIL_HOST_USER = 'qq137100856@sina.com'
 EMAIL_HOST_PASSWORD = '12345678'
 EMAIL_USE_TLS = False
 EMAIL_FROM = 'qq137100856@sina.com'
+
+MEDIA_URL = '/media/'
+MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
