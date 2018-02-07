@@ -1,3 +1,4 @@
+from django.db.models import Q
 from django.shortcuts import render
 from django.views.generic.base import View
 from pure_pagination import Paginator, EmptyPage, PageNotAnInteger
